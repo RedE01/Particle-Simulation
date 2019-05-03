@@ -30,6 +30,8 @@ project "ParticleSimulation"
 		"GLFW"
 	}
 
+	defines "GLEW_STATIC"
+
 	filter "system:windows"
 		links {
 			"opengl32.lib"

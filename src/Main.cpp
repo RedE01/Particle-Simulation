@@ -80,8 +80,8 @@ int main(void)
         return -1;
     }
 
-    unsigned int vertShaderId = createShader(readStringFromFile("src/vertexShader.glsl"), GL_VERTEX_SHADER);
-    unsigned int fragShaderId = createShader(readStringFromFile("src/fragmentShader.glsl"), GL_FRAGMENT_SHADER);
+    unsigned int vertShaderId = createShader(readStringFromFile("vertexShader.glsl"), GL_VERTEX_SHADER);
+    unsigned int fragShaderId = createShader(readStringFromFile("fragmentShader.glsl"), GL_FRAGMENT_SHADER);
     unsigned int shaderProgramId = createShaderProgram(vertShaderId, fragShaderId);
     glUseProgram(shaderProgramId);
 
