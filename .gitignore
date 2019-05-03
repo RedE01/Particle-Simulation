@@ -32,3 +32,6 @@ Generated\ Files/
 *.vcxproj
 *.vcxproj.user
 *.vcxproj.filters
+
+.directory
+.vscode
