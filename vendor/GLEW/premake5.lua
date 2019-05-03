@@ -13,9 +13,10 @@ project "GLEW"
 		"include"
 	}
 
-	links {
-		"opengl32.lib"
-	}
+	filter "system:windows"
+		links {
+			"opengl32.lib"
+		}
 
 	defines "GLEW_STATIC"
 

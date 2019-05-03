@@ -26,12 +26,21 @@ project "ParticleSimulation"
 
 	links {
 		"GLEW",
-		"GLFW",
-		"opengl32.lib"
+		"GLFW"
 	}
 
+	filter "system:windows"
+		links {
+			"opengl32.lib"
+		}
+
 	filter "system:linux" 
-		linkoptions { "-lX11", "-ldl", "-lGL", "-lpthread" }
+		links {
+			"X11",
+			"dl",
+			"GL",
+			"pthread"
+		}
 
 	filter "configurations:Debug"
 		symbols "On"
