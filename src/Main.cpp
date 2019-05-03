@@ -4,6 +4,7 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 
 std::string readStringFromFile(const char* filePath) {
     std::ifstream fileStream;
