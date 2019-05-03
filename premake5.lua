@@ -21,7 +21,8 @@ project "ParticleSimulation"
 
 	includedirs {
 		"vendor/GLEW/include",
-		"vendor/GLFW/include"
+		"vendor/GLFW/include",
+		"vendor/GLM"
 	}
 
 	links {
