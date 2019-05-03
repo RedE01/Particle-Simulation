@@ -26,7 +26,8 @@ project "ParticleSimulation"
 
 	links {
 		"GLEW",
-		"GLFW"
+		"GLFW",
+		"opengl32.lib"
 	}
 
 	filter "system:linux" 

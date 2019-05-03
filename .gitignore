@@ -27,3 +27,7 @@ bld/
 
 # Visual Studio 2017 auto generated files
 Generated\ Files/
+*.sln
+*.vcxproj
+*.vcxproj.user
+*.vcxproj.filters

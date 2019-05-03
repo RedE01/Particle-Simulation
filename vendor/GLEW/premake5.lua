@@ -9,6 +9,14 @@ project "GLEW"
 		"include/GL/**.h"
 	}
 
+	includedirs {
+		"include"
+	}
+
+	links {
+		"opengl32.lib"
+	}
+
 	defines "GLEW_STATIC"
 
 	filter "configurations:Debug"
