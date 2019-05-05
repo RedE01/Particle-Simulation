@@ -7,7 +7,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
-#define PARTICLES 1000
+#define PARTICLES 10000
 
 std::string readStringFromFile(std::string filePath) {
     std::ifstream fileStream;
@@ -89,7 +89,7 @@ int main(int argv, char* argc[]) {
         std::cout << "FAILED TO INIT GLEW" << std::endl;
         return -1;
     }
-    // glfwSwapInterval(0);
+    glfwSwapInterval(0);
 
     unsigned int vertShaderId = createShader(readStringFromFile(executablePath + "vertexShader.glsl"), GL_VERTEX_SHADER);
     unsigned int fragShaderId = createShader(readStringFromFile(executablePath + "fragmentShader.glsl"), GL_FRAGMENT_SHADER);
@@ -100,9 +100,6 @@ int main(int argv, char* argc[]) {
     for(int i = 0; i < PARTICLES; ++i) {
         offsets[i] = glm::vec2(float(std::rand()) / float(INT_MAX) * 2.0f - 1.0f, float(std::rand() / float(INT_MAX) * 2.0f - 1.0f));
     }
-
-    int offsetsUniformLocation = glGetUniformLocation(shaderProgramId, "offsets");
-    glUniform2fv(offsetsUniformLocation, PARTICLES, &(offsets[0][0]));
 
     int screenSizeUniformLocation = glGetUniformLocation(shaderProgramId, "screenSize");
     glUniform2f(screenSizeUniformLocation, screenSize.x, screenSize.y);
@@ -125,12 +122,21 @@ int main(int argv, char* argc[]) {
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (void*)0);
     
     unsigned int ibo;
     glGenBuffers(1, &ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexData), indexData, GL_STATIC_DRAW);
+
+    unsigned int instancedVbo;
+    glGenBuffers(1, &instancedVbo);
+    glBindBuffer(GL_ARRAY_BUFFER, instancedVbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * PARTICLES, &offsets[0], GL_STATIC_DRAW);
+    
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (void*)0);
+    glVertexAttribDivisor(1, 1);
 
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now(), end;
     double timer = 0.0f;
