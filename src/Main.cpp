@@ -7,7 +7,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
-#define PARTICLES 10000
+#define PARTICLES 1000
 
 std::string readStringFromFile(std::string filePath) {
     std::ifstream fileStream;
@@ -62,9 +62,9 @@ int main(int argv, char* argc[]) {
     //Remove executable name from filepath
     std::string executablePath = argc[0];
     {
-        auto it = executablePath.end();
-        for(; it != executablePath.begin() && *it != '/'; --it);
-        executablePath.erase(++it, executablePath.end());
+		int i = executablePath.length() - 1;
+		for (; i > -1 && executablePath[i] != '/' && executablePath[i] != '\\'; --i);
+        executablePath.erase(i + (int)1, executablePath.length() - 1);
     }
 
     GLFWwindow* window;
