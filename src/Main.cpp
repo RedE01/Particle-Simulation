@@ -7,7 +7,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
-#define PARTICLES 1000
+#define PARTICLES 10000
 
 std::string readStringFromFile(std::string filePath) {
     std::ifstream fileStream;
@@ -64,7 +64,7 @@ int main(int argv, char* argc[]) {
     {
 		int i = executablePath.length() - 1;
 		for (; i > -1 && executablePath[i] != '/' && executablePath[i] != '\\'; --i);
-        executablePath.erase(i + (int)1, executablePath.length() - 1);
+        executablePath.erase(i + 1, executablePath.length() - 1);
     }
 
     GLFWwindow* window;
@@ -98,7 +98,7 @@ int main(int argv, char* argc[]) {
 
     glm::vec2 offsets[PARTICLES];
     for(int i = 0; i < PARTICLES; ++i) {
-        offsets[i] = glm::vec2(float(std::rand()) / float(INT_MAX) * 2.0f - 1.0f, float(std::rand() / float(INT_MAX) * 2.0f - 1.0f));
+		offsets[i] = glm::vec2(float(std::rand()) / float(RAND_MAX) * 2.0f - 1.0f, float(std::rand() / float(RAND_MAX) * 2.0f - 1.0f));
     }
 
     int screenSizeUniformLocation = glGetUniformLocation(shaderProgramId, "screenSize");
@@ -155,6 +155,8 @@ int main(int argv, char* argc[]) {
             fps = 0;
             timer -= 1.000;
         }
+
+		if (glfwGetKey(window, GLFW_KEY_ESCAPE)) glfwSetWindowShouldClose(window, true);
 
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
