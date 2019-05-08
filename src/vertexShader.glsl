@@ -8,5 +8,5 @@ uniform vec2 screenSize;
 void main() {
     vec2 pos = vec2(aPos.x * screenSize.y / screenSize.x, aPos.y);
 
-    gl_Position = vec4(pos * 0.01f + aOffset, 1.0f, 1.0f);
+    gl_Position = vec4(pos * 0.005f + aOffset, 1.0f, 1.0f);
 }

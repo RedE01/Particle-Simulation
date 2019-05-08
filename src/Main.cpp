@@ -7,6 +7,8 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
+#include "Particle.h"
+
 #define PARTICLES 10000
 
 std::string readStringFromFile(std::string filePath) {
@@ -32,6 +34,7 @@ unsigned int createShader(std::string shaderSource, GLenum shaderType) {
         glGetShaderInfoLog(shaderId, 256, &infoLogLen, infoLog);
         std::cout << "Error in " << (shaderType == GL_VERTEX_SHADER ? "Vertex" : "Fragment") << " shader" << std::endl;
         std::cout << infoLog << std::endl;
+        throw std::runtime_error("Shader error");
     }
     return shaderId;
 }
@@ -50,6 +53,7 @@ unsigned int createShaderProgram(unsigned int vertexShaderId, unsigned int fragm
         char infoLog[256];
         glGetProgramInfoLog(programId, 256, &infoLogLen, infoLog);
         std::cout << infoLog << std::endl;
+        throw std::runtime_error("Program error");
     }
 
     glDeleteShader(vertexShaderId);
@@ -96,9 +100,10 @@ int main(int argv, char* argc[]) {
     unsigned int shaderProgramId = createShaderProgram(vertShaderId, fragShaderId);
     glUseProgram(shaderProgramId);
 
+    Particle particles[PARTICLES];
     glm::vec2 offsets[PARTICLES];
     for(int i = 0; i < PARTICLES; ++i) {
-        offsets[i] = glm::vec2(float(std::rand()) / float(INT_MAX) * 2.0f - 1.0f, float(std::rand() / float(INT_MAX) * 2.0f - 1.0f));
+        particles[i].pos = glm::vec2(float(std::rand()) / float(INT_MAX) * 2.0f - 1.0f, float(std::rand() / float(INT_MAX) * 2.0f - 1.0f));
     }
 
     int screenSizeUniformLocation = glGetUniformLocation(shaderProgramId, "screenSize");
@@ -132,7 +137,7 @@ int main(int argv, char* argc[]) {
     unsigned int instancedVbo;
     glGenBuffers(1, &instancedVbo);
     glBindBuffer(GL_ARRAY_BUFFER, instancedVbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * PARTICLES, &offsets[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * PARTICLES, &offsets[0], GL_DYNAMIC_DRAW);
     
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (void*)0);
@@ -142,19 +147,17 @@ int main(int argv, char* argc[]) {
     double timer = 0.0f;
     int fps = 0;
 
+    double deltaTime = 1.00;
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
-        end = std::chrono::high_resolution_clock::now();
-        std::chrono::high_resolution_clock::duration dur = end - start;
-        start = std::chrono::high_resolution_clock::now();
-        timer += dur.count() / 1000000000.0f;
-        ++fps;
-        if(timer >= 1.000) {
-            std::cout << fps << std::endl;
-            fps = 0;
-            timer -= 1.000;
+        for(int i = 0; i < PARTICLES; ++i) {
+            particles[i].applyForce(glm::vec2(0.0f), 0.2 * deltaTime);
+
+            offsets[i] = particles[i].pos;
         }
+        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * PARTICLES, &(offsets[0]), GL_DYNAMIC_DRAW);
 
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
@@ -165,6 +168,17 @@ int main(int argv, char* argc[]) {
         glfwSwapBuffers(window);
 
         /* Poll for and process events */
+        end = std::chrono::high_resolution_clock::now();
+        std::chrono::high_resolution_clock::duration dur = end - start;
+        start = std::chrono::high_resolution_clock::now();
+        deltaTime = dur.count() / 1000000000.0f;
+        timer += deltaTime;
+        ++fps;
+        if(timer >= 1.000) {
+            std::cout << fps << std::endl;
+            fps = 0;
+            timer -= 1.000;
+        }
         glfwPollEvents();
     }
 
