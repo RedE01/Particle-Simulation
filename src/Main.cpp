@@ -66,9 +66,9 @@ int main(int argv, char* argc[]) {
     //Remove executable name from filepath
     std::string executablePath = argc[0];
     {
-        auto it = executablePath.end();
-        for(; it != executablePath.begin() && *it != '/'; --it);
-        executablePath.erase(++it, executablePath.end());
+		int i = executablePath.length() - 1;
+		for (; i > -1 && executablePath[i] != '/' && executablePath[i] != '\\'; --i);
+        executablePath.erase(i + 1, executablePath.length() - 1);
     }
 
     GLFWwindow* window;
@@ -103,7 +103,7 @@ int main(int argv, char* argc[]) {
     Particle particles[PARTICLES];
     glm::vec2 offsets[PARTICLES];
     for(int i = 0; i < PARTICLES; ++i) {
-        particles[i].pos = glm::vec2(float(std::rand()) / float(INT_MAX) * 2.0f - 1.0f, float(std::rand() / float(INT_MAX) * 2.0f - 1.0f));
+        particles[i].pos = glm::vec2(float(std::rand()) / float(RAND_MAX) * 2.0f - 1.0f, float(std::rand() / float(RAND_MAX) * 2.0f - 1.0f));
     }
 
     int screenSizeUniformLocation = glGetUniformLocation(shaderProgramId, "screenSize");
@@ -158,6 +158,8 @@ int main(int argv, char* argc[]) {
             offsets[i] = particles[i].pos;
         }
         glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * PARTICLES, &(offsets[0]), GL_DYNAMIC_DRAW);
+
+		if (glfwGetKey(window, GLFW_KEY_ESCAPE)) glfwSetWindowShouldClose(window, true);
 
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
