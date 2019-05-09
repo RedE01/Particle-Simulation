@@ -6,6 +6,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "Particle.h"
 
@@ -71,6 +72,8 @@ int main(int argv, char* argc[]) {
         executablePath.erase(i + 1, executablePath.length() - 1);
     }
 
+	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 10.0f);
+
     GLFWwindow* window;
 
     /* Initialize the library */
@@ -104,7 +107,16 @@ int main(int argv, char* argc[]) {
     glm::vec2 offsets[PARTICLES];
     for(int i = 0; i < PARTICLES; ++i) {
         particles[i].pos = glm::vec2(float(std::rand()) / float(RAND_MAX) * 2.0f - 1.0f, float(std::rand() / float(RAND_MAX) * 2.0f - 1.0f));
+		particles[i].pos *= 10;
     }
+
+	glm::mat4 perspectiveMatrix = glm::perspective(90.0f, screenSize.x / screenSize.y, 0.1f, 100.0f);
+	int perspectiveMatUniformLocation = glGetUniformLocation(shaderProgramId, "projMat");
+	glUniformMatrix4fv(perspectiveMatUniformLocation, 1, GL_FALSE, &(perspectiveMatrix[0][0]));
+
+	glm::mat4 viewMat = glm::translate(glm::mat4(1.0f), -cameraPos);
+	int viewMatUniformLocation = glGetUniformLocation(shaderProgramId, "viewMat");
+	glUniformMatrix4fv(viewMatUniformLocation, 1, GL_FALSE, &(viewMat[0][0]));
 
     int screenSizeUniformLocation = glGetUniformLocation(shaderProgramId, "screenSize");
     glUniform2f(screenSizeUniformLocation, screenSize.x, screenSize.y);
@@ -152,8 +164,15 @@ int main(int argv, char* argc[]) {
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
+		if (glfwGetKey(window, GLFW_KEY_W)) cameraPos.z -= deltaTime * 5.0f;
+		if (glfwGetKey(window, GLFW_KEY_S)) cameraPos.z += deltaTime * 5.0f;
+		if (glfwGetKey(window, GLFW_KEY_A)) cameraPos.x -= deltaTime * 5.0f;
+		if (glfwGetKey(window, GLFW_KEY_D)) cameraPos.x += deltaTime * 5.0f;
+		viewMat = glm::translate(glm::mat4(1.0f), -cameraPos);
+		glUniformMatrix4fv(viewMatUniformLocation, 1, GL_FALSE, &(viewMat[0][0]));
+
         for(int i = 0; i < PARTICLES; ++i) {
-            particles[i].applyForce(glm::vec2(0.0f), 0.2 * deltaTime);
+            particles[i].applyForce(glm::vec2(0.0f), 2.0f * deltaTime);
 
             offsets[i] = particles[i].pos;
         }
