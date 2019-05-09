@@ -1,11 +1,11 @@
 #include "Particle.h"
+#include <iostream>
 
 Particle::Particle() : pos(glm::vec2(0.0f, 0.0f)) {
-
+	dir = glm::vec2(std::rand() / float(RAND_MAX) * 0.5f - 0.25f, std::rand() / float(RAND_MAX) * 0.5f - 0.25f);
 }
 
-Particle::Particle(glm::vec2 pos) : pos(pos) {
-
+Particle::Particle(glm::vec2 pos) : pos(pos), dir(glm::vec2(0.0f)) {
 }
 
 Particle::~Particle() {
