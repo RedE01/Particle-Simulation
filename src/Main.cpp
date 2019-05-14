@@ -63,6 +63,18 @@ unsigned int createShaderProgram(unsigned int vertexShaderId, unsigned int fragm
     return programId;
 }
 
+bool firstCursorPosCallback = true;
+glm::vec2 prevCursorPos, deltaCursorPos = glm::vec2(0.0f);
+static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
+	if (firstCursorPosCallback) {
+		firstCursorPosCallback = false;
+	}
+	else {
+		deltaCursorPos = glm::vec2(xpos - prevCursorPos.x, ypos - prevCursorPos.y);
+	}
+	prevCursorPos = glm::vec2(xpos, ypos);
+}
+
 int main(int argv, char* argc[]) {
     //Remove executable name from filepath
     std::string executablePath = argc[0];
@@ -89,6 +101,9 @@ int main(int argv, char* argc[]) {
         return -1;
     }
 
+	glfwSetCursorPosCallback(window, cursorPosCallback);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
     
@@ -103,10 +118,10 @@ int main(int argv, char* argc[]) {
     unsigned int shaderProgramId = createShaderProgram(vertShaderId, fragShaderId);
     glUseProgram(shaderProgramId);
 
-    Particle particles[PARTICLES];
-    glm::vec2 offsets[PARTICLES];
+    Particle* particles = new Particle[PARTICLES];
+    glm::vec3* offsets = new glm::vec3[PARTICLES];
     for(int i = 0; i < PARTICLES; ++i) {
-        particles[i].pos = glm::vec2(float(std::rand()) / float(RAND_MAX) * 2.0f - 1.0f, float(std::rand() / float(RAND_MAX) * 2.0f - 1.0f));
+        particles[i].pos = glm::vec3(float(std::rand()) / float(RAND_MAX) * 2.0f - 1.0f, float(std::rand() / float(RAND_MAX) * 2.0f - 1.0f), float(std::rand()) / float(RAND_MAX) * 2.0f - 1.0f);
 		particles[i].pos *= 10;
     }
 
@@ -149,10 +164,10 @@ int main(int argv, char* argc[]) {
     unsigned int instancedVbo;
     glGenBuffers(1, &instancedVbo);
     glBindBuffer(GL_ARRAY_BUFFER, instancedVbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * PARTICLES, &offsets[0], GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Particle) * PARTICLES, &particles[0], GL_DYNAMIC_DRAW);
     
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (void*)0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Particle), (void*)0);
     glVertexAttribDivisor(1, 1);
 
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now(), end;
@@ -160,23 +175,27 @@ int main(int argv, char* argc[]) {
     int fps = 0;
 
     double deltaTime = 1.00;
+	float cameraRotation = 0.0f;
 
     /* Loop until the user closes the window */
-    while (!glfwWindowShouldClose(window))
-    {
-		if (glfwGetKey(window, GLFW_KEY_W)) cameraPos.z -= deltaTime * 5.0f;
-		if (glfwGetKey(window, GLFW_KEY_S)) cameraPos.z += deltaTime * 5.0f;
-		if (glfwGetKey(window, GLFW_KEY_A)) cameraPos.x -= deltaTime * 5.0f;
-		if (glfwGetKey(window, GLFW_KEY_D)) cameraPos.x += deltaTime * 5.0f;
-		viewMat = glm::translate(glm::mat4(1.0f), -cameraPos);
+    while (!glfwWindowShouldClose(window)) {
+		cameraRotation += deltaCursorPos.x * 0.001f;
+		glm::vec3 forwardVec = glm::rotate(glm::mat4(1.0f), -cameraRotation, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
+		glm::vec3 rightVec = glm::cross(forwardVec, glm::vec3(0.0f, 1.0f, 0.0f));
+
+		if (glfwGetKey(window, GLFW_KEY_W)) cameraPos += forwardVec * float(deltaTime * 5.0f);
+		if (glfwGetKey(window, GLFW_KEY_S)) cameraPos -= forwardVec * float(deltaTime * 5.0f);
+		if (glfwGetKey(window, GLFW_KEY_A)) cameraPos -= rightVec * float(deltaTime * 5.0f);
+		if (glfwGetKey(window, GLFW_KEY_D)) cameraPos += rightVec * float(deltaTime * 5.0f);
+
+		viewMat = glm::rotate(glm::mat4(1.0f), cameraRotation, glm::vec3(0.0f, 1.0f, 0.0f));
+		viewMat = glm::translate(viewMat, -cameraPos);
 		glUniformMatrix4fv(viewMatUniformLocation, 1, GL_FALSE, &(viewMat[0][0]));
 
         for(int i = 0; i < PARTICLES; ++i) {
-            particles[i].applyForce(glm::vec2(0.0f), 2.0f * deltaTime);
-
-            offsets[i] = particles[i].pos;
+			particles[i].applyForce(glm::vec3(0.0f), 2.0f * deltaTime);
         }
-        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * PARTICLES, &(offsets[0]), GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(Particle) * PARTICLES, &(particles[0]), GL_DYNAMIC_DRAW);
 
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE)) glfwSetWindowShouldClose(window, true);
 
@@ -200,6 +219,8 @@ int main(int argv, char* argc[]) {
             fps = 0;
             timer -= 1.000;
         }
+
+		deltaCursorPos = glm::vec2(0.0f);
         glfwPollEvents();
     }
 

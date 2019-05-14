@@ -3,11 +3,11 @@
 
 class Particle {
 public:
-    glm::vec2 pos, dir;
+    glm::vec3 pos, dir;
 public:
     Particle();
-    Particle(glm::vec2 pos);
+    Particle(glm::vec3 pos);
     ~Particle();
 
-    void applyForce(glm::vec2 pos, float force);
+    void applyForce(glm::vec3 pos, float force);
 };
